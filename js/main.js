@@ -161,92 +161,119 @@
 
 })();
 
-/* ---- Hero water splash effect (camera lens hit) ---- */
+/* ---- Hero water splash effect ---- */
 (function initHeroSplash() {
-  const container = document.querySelector('.hero-splash');
+  var container = document.querySelector('.hero-splash');
   if (!container) return;
+
+  // Canvas fills the hero overlay
+  var canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
+  container.appendChild(canvas);
+  var ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width  = container.offsetWidth;
+    canvas.height = container.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
 
   function rand(min, max) { return Math.random() * (max - min) + min; }
 
-  function createImpact() {
-    var cx       = rand(5, 94);   // horizontal % centre of impact
-    var cy       = rand(5, 88);   // vertical %
-    var size     = rand(18, 70);  // main drop diameter px
-    var duration = rand(0.5, 1.1); // fast — this is a hit, not a drip
+  var particles = [];
 
-    // --- Main drop ---
-    var drop = document.createElement('div');
-    drop.className = 'hero-drop';
-    drop.style.width  = size + 'px';
-    drop.style.height = size + 'px';
-    drop.style.left   = 'calc(' + cx + '% - ' + (size / 2) + 'px)';
-    drop.style.top    = 'calc(' + cy + '% - ' + (size / 2) + 'px)';
-    drop.style.animationDuration = duration + 's';
-    container.appendChild(drop);
-    setTimeout(function () { if (drop.parentNode) drop.remove(); }, (duration + 0.25) * 1000);
+  // Spawn a burst of spray from a point near the bottom of the frame.
+  // Particles launch upward/outward with real velocity + gravity — like
+  // bow wash hitting a camera lens at speed.
+  function spawnSplash() {
+    var W = canvas.width;
+    var H = canvas.height;
 
-    // --- Ripple rings (1–2) ---
-    var numRipples = Math.random() < 0.5 ? 1 : 2;
-    for (var r = 0; r < numRipples; r++) {
-      var ripple   = document.createElement('div');
-      ripple.className = 'hero-ripple';
-      var rSize    = size * rand(0.85, 1.15);
-      var rDur     = rand(0.45, 0.9);
-      var rDelay   = r * rand(0.07, 0.16);
-      var rScale   = rand(2.5, 5);
-      ripple.style.width            = rSize + 'px';
-      ripple.style.height           = rSize + 'px';
-      ripple.style.left             = 'calc(' + cx + '% - ' + (rSize / 2) + 'px)';
-      ripple.style.top              = 'calc(' + cy + '% - ' + (rSize / 2) + 'px)';
-      ripple.style.animationDuration = rDur + 's';
-      ripple.style.animationDelay   = rDelay + 's';
-      ripple.style.setProperty('--ripple-scale', rScale);
-      container.appendChild(ripple);
-      setTimeout(function () { if (ripple.parentNode) ripple.remove(); }, (rDur + rDelay + 0.25) * 1000);
-    }
+    // Origin: anywhere along the lower 40 % of the frame (bow spray zone)
+    var ox = rand(0.05, 0.95) * W;
+    var oy = rand(0.60, 1.08) * H;   // can start just below the visible edge
 
-    // --- Splatter droplets flying outward ---
-    var numSplatters = Math.floor(rand(5, 13));
-    for (var s = 0; s < numSplatters; s++) {
-      var sp      = document.createElement('div');
-      sp.className = 'hero-splatter';
-      var spSize  = rand(2, 9);
-      var angle   = (s / numSplatters) * Math.PI * 2 + rand(-0.35, 0.35);
-      var dist    = rand(size * 0.5, size * 2.4);
-      var dx      = Math.cos(angle) * dist;
-      var dy      = Math.sin(angle) * dist;
-      var spDur   = rand(0.3, 0.75);
-      var spDelay = rand(0.04, 0.18);
-      sp.style.width            = spSize + 'px';
-      sp.style.height           = spSize + 'px';
-      sp.style.left             = 'calc(' + cx + '% - ' + (spSize / 2) + 'px)';
-      sp.style.top              = 'calc(' + cy + '% - ' + (spSize / 2) + 'px)';
-      sp.style.animationDuration = spDur + 's';
-      sp.style.animationDelay   = spDelay + 's';
-      sp.style.setProperty('--dx', dx + 'px');
-      sp.style.setProperty('--dy', dy + 'px');
-      container.appendChild(sp);
-      setTimeout(function () { if (sp.parentNode) sp.remove(); }, (spDur + spDelay + 0.25) * 1000);
+    var count = Math.floor(rand(40, 100));
+
+    for (var i = 0; i < count; i++) {
+      // Angle fans hard upward (-π = straight left, 0 = straight right)
+      // Concentrate toward straight-up with some spread left/right
+      var spread = rand(0.15, 0.55) * Math.PI;
+      var angle  = -Math.PI / 2 + rand(-spread, spread);
+
+      var speed  = rand(150, 550);    // px / s — fast like real spray
+      var sz     = rand(0.8, 5.5);
+      var aspect = rand(1.0, 3.0);    // elongate in travel direction
+
+      particles.push({
+        x:       ox + rand(-25, 25),
+        y:       oy,
+        vx:      Math.cos(angle) * speed,
+        vy:      Math.sin(angle) * speed,
+        size:    sz,
+        aspect:  aspect,
+        alpha:   rand(0.55, 1.0),
+        life:    1.0,
+        decay:   rand(0.8, 2.4),      // how fast it fades (life/s)
+        gravity: rand(250, 520)       // px/s² pulling back down
+      });
     }
   }
 
-  // Opening burst — hits right away when the page loads
-  for (var i = 0; i < 6; i++) {
-    setTimeout(createImpact, i * 180);
+  var lastTime = null;
+
+  function frame(ts) {
+    if (lastTime === null) lastTime = ts;
+    var dt = Math.min((ts - lastTime) / 1000, 0.05);
+    lastTime = ts;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (var i = particles.length - 1; i >= 0; i--) {
+      var p = particles[i];
+
+      p.x   += p.vx * dt;
+      p.y   += p.vy * dt;
+      p.vy  += p.gravity * dt;   // gravity arcs them back down
+      p.life -= p.decay * dt;
+
+      if (p.life <= 0 || p.y > canvas.height + 40) {
+        particles.splice(i, 1);
+        continue;
+      }
+
+      // Draw as an ellipse stretched in the direction of travel
+      var vAngle = Math.atan2(p.vy, p.vx);
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.life) * p.alpha;
+      ctx.fillStyle   = 'rgba(255,255,255,0.92)';
+      ctx.translate(p.x, p.y);
+      ctx.rotate(vAngle);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, p.size * p.aspect, p.size, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // Opening burst — spray hits right as the page loads
+  for (var j = 0; j < 4; j++) {
+    setTimeout(spawnSplash, j * 200);
   }
 
-  // Ongoing cadence — energetic but not overwhelming
-  function scheduleImpact() {
-    // ~25 % chance of a quick double-hit (wave crest)
-    if (Math.random() < 0.25) {
-      createImpact();
-      setTimeout(createImpact, rand(80, 200));
-    } else {
-      createImpact();
+  // Ongoing rhythm — occasional double-hit like a wave crest
+  function schedule() {
+    spawnSplash();
+    if (Math.random() < 0.3) {
+      setTimeout(spawnSplash, rand(90, 230));
     }
-    setTimeout(scheduleImpact, rand(350, 950));
+    setTimeout(schedule, rand(450, 1100));
   }
-  setTimeout(scheduleImpact, 1300);
+  setTimeout(schedule, 1000);
 })();
 
 /* ---- Current year in footer copyright ---- */
