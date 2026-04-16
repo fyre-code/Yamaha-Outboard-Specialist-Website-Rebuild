@@ -428,6 +428,7 @@ p:last-child { margin-bottom: 0; }
   font-size: 2.8rem;
 }
 .why-card h3 { margin-bottom: 0.6rem; color: var(--navy); }
+.why-card p  { font-size: 1.15rem; }
 
 /* ---------- SERVICES GRID ---------- */
 .services-grid {
