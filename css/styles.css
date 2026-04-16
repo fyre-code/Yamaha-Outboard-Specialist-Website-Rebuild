@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,700&display=swap');
+
 /* =============================================
    YAMAHA OUTBOARD SPECIALIST
    Stylesheet — styles.css
@@ -293,6 +295,9 @@ p:last-child { margin-bottom: 0; }
 }
 
 .hero-content h1 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-style: italic;
   color: var(--white-pure);
   margin-bottom: 1.1rem;
   text-shadow: 0 2px 8px rgba(0,0,0,0.4);
