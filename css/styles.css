@@ -62,11 +62,9 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--navy);
   line-height: 1.2;
   font-weight: 700;
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  text-align: center;
 }
-h1 { font-size: clamp(1.75rem, 4vw, 2.75rem); }
-h2 { font-size: clamp(1.4rem, 3vw, 2rem); }
-h3 { font-size: clamp(1.1rem, 2vw, 1.4rem); }
-h4 { font-size: 1.1rem; }
 p  { margin-bottom: 1rem; color: var(--text-mid); }
 p:last-child { margin-bottom: 0; }
 
@@ -160,9 +158,9 @@ p:last-child { margin-bottom: 0; }
 
 .btn-group {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.85rem;
+  flex-direction: column;
   align-items: center;
+  gap: 0.85rem;
 }
 
 /* ---------- HEADER / NAV ---------- */
@@ -462,7 +460,6 @@ p:last-child { margin-bottom: 0; }
 }
 .cta-banner h2 { color: var(--white-pure); margin-bottom: 0.6rem; }
 .cta-banner p  { color: rgba(255,255,255,0.85); margin-bottom: 1.75rem; font-size: 1.05rem; }
-.cta-banner .btn-group { justify-content: center; }
 
 /* ---------- FAQ ACCORDION ---------- */
 .faq-list { max-width: 780px; margin: 0 auto; }
@@ -937,8 +934,6 @@ p:last-child { margin-bottom: 0; }
 /* ---------- RESPONSIVE HELPERS ---------- */
 @media (max-width: 600px) {
   .section { padding: 3rem 0; }
-  .btn-group { flex-direction: column; align-items: stretch; }
-  .btn-group .btn { justify-content: center; }
-  .hero-content { padding: 3rem 1.25rem 5rem; }
+.hero-content { padding: 3rem 1.25rem 5rem; }
   .cta-banner { padding: 2.5rem 1.25rem; }
 }
