@@ -525,7 +525,7 @@ p:last-child { margin-bottom: 0; }
   border: none;
   padding: 1.1rem 0;
   text-align: left;
-  font-size: 1rem;
+  font-size: 1.15rem;
   font-weight: 600;
   color: var(--navy);
   cursor: pointer;
@@ -566,7 +566,7 @@ p:last-child { margin-bottom: 0; }
 .faq-answer p {
   padding-bottom: 1.1rem;
   color: var(--text-mid);
-  font-size: 0.97rem;
+  font-size: 1.15rem;
 }
 .faq-item.open .faq-answer { max-height: 400px; }
 
