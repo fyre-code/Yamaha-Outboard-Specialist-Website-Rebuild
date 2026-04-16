@@ -820,7 +820,6 @@ p:last-child { margin-bottom: 0; }
   gap: 2.5rem;
   align-items: start;
   padding-bottom: 2.5rem;
-  border-bottom: 1px solid rgba(107,163,196,0.15);
 }
 @media (max-width: 860px) {
   .footer-inner { grid-template-columns: 1fr 1fr; }
@@ -893,7 +892,6 @@ p:last-child { margin-bottom: 0; }
   flex-wrap: wrap;
   gap: 1rem;
   padding: 0.9rem 0;
-  border-bottom: 1px solid rgba(107,163,196,0.12);
 }
 .footer-legal-links a {
   color: var(--sky);
