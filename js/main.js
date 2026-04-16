@@ -161,119 +161,110 @@
 
 })();
 
-/* ---- Hero water splash effect ---- */
-(function initHeroSplash() {
+/* ---- Hero flowing water effect ---- */
+(function initHeroFlow() {
   var container = document.querySelector('.hero-splash');
   if (!container) return;
 
-  // Canvas fills the hero overlay
   var canvas = document.createElement('canvas');
   canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
   container.appendChild(canvas);
   var ctx = canvas.getContext('2d');
 
-  function resize() {
-    canvas.width  = container.offsetWidth;
-    canvas.height = container.offsetHeight;
-  }
-  resize();
-  window.addEventListener('resize', resize);
-
   function rand(min, max) { return Math.random() * (max - min) + min; }
 
-  var particles = [];
+  var curtains = [];
 
-  // Spawn a burst of spray from a point near the bottom of the frame.
-  // Particles launch upward/outward with real velocity + gravity — like
-  // bow wash hitting a camera lens at speed.
-  function spawnSplash() {
-    var W = canvas.width;
-    var H = canvas.height;
+  // Build (or rebuild on resize) a set of overlapping flowing curtains.
+  // Each curtain is a wide semi-transparent band that scrolls downward
+  // continuously, with sinusoidal wave distortion on both edges.
+  function build() {
+    canvas.width  = container.offsetWidth;
+    canvas.height = container.offsetHeight;
+    curtains = [];
 
-    // Origin: anywhere along the lower 40 % of the frame (bow spray zone)
-    var ox = rand(0.05, 0.95) * W;
-    var oy = rand(0.60, 1.08) * H;   // can start just below the visible edge
-
-    var count = Math.floor(rand(40, 100));
-
-    for (var i = 0; i < count; i++) {
-      // Angle fans hard upward (-π = straight left, 0 = straight right)
-      // Concentrate toward straight-up with some spread left/right
-      var spread = rand(0.15, 0.55) * Math.PI;
-      var angle  = -Math.PI / 2 + rand(-spread, spread);
-
-      var speed  = rand(150, 550);    // px / s — fast like real spray
-      var sz     = rand(0.8, 5.5);
-      var aspect = rand(1.0, 3.0);    // elongate in travel direction
-
-      particles.push({
-        x:       ox + rand(-25, 25),
-        y:       oy,
-        vx:      Math.cos(angle) * speed,
-        vy:      Math.sin(angle) * speed,
-        size:    sz,
-        aspect:  aspect,
-        alpha:   rand(0.55, 1.0),
-        life:    1.0,
-        decay:   rand(0.8, 2.4),      // how fast it fades (life/s)
-        gravity: rand(250, 520)       // px/s² pulling back down
+    var n = 14; // enough bands to feel like a lot of water
+    for (var i = 0; i < n; i++) {
+      curtains.push({
+        xFrac:     rand(0.0, 1.0),     // centre x as fraction of width
+        wFrac:     rand(0.10, 0.38),   // width as fraction of screen width
+        speed:     rand(0.35, 1.1),    // screen-heights scrolled per second
+        scrollY:   rand(0, 1),         // initial scroll position [0, 1)
+        waveAmp:   rand(5, 22),        // px of horizontal edge undulation
+        waveFreq:  rand(1.5, 4.5),     // oscillations along the full height
+        waveSpeed: rand(0.3, 1.1),     // how fast the wave shape itself moves
+        phase:     rand(0, Math.PI * 2),
+        alpha:     rand(0.07, 0.22)    // keep it translucent — image shows through
       });
     }
   }
 
-  var lastTime = null;
+  build();
+  window.addEventListener('resize', build);
+
+  var last = null, t = 0;
 
   function frame(ts) {
-    if (lastTime === null) lastTime = ts;
-    var dt = Math.min((ts - lastTime) / 1000, 0.05);
-    lastTime = ts;
+    if (!last) last = ts;
+    var dt = Math.min((ts - last) / 1000, 0.05);
+    last = ts;
+    t += dt;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    var W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
 
-    for (var i = particles.length - 1; i >= 0; i--) {
-      var p = particles[i];
+    for (var i = 0; i < curtains.length; i++) {
+      var c = curtains[i];
+      c.scrollY = (c.scrollY + c.speed * dt) % 1;
 
-      p.x   += p.vx * dt;
-      p.y   += p.vy * dt;
-      p.vy  += p.gravity * dt;   // gravity arcs them back down
-      p.life -= p.decay * dt;
+      var cx = c.xFrac * W;
+      var hw = (c.wFrac * W) * 0.5;   // half-width
 
-      if (p.life <= 0 || p.y > canvas.height + 40) {
-        particles.splice(i, 1);
-        continue;
+      // Draw 2 copies end-to-end so the scroll loops seamlessly
+      for (var copy = 0; copy < 2; copy++) {
+        var yTop = (c.scrollY + copy - 1) * H;
+
+        var SEGS = 40;
+        ctx.beginPath();
+
+        // Left edge — top to bottom
+        for (var s = 0; s <= SEGS; s++) {
+          var fy  = s / SEGS;
+          var y   = yTop + fy * H;
+          var wav = Math.sin(fy * Math.PI * c.waveFreq + t * c.waveSpeed + c.phase) * c.waveAmp;
+          var x   = cx - hw + wav;
+          if (s === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+
+        // Right edge — bottom to top
+        for (var s = SEGS; s >= 0; s--) {
+          var fy  = s / SEGS;
+          var y   = yTop + fy * H;
+          var wav = Math.sin(fy * Math.PI * c.waveFreq + t * c.waveSpeed + c.phase + 2.0) * c.waveAmp;
+          var x   = cx + hw + wav;
+          ctx.lineTo(x, y);
+        }
+
+        ctx.closePath();
+
+        // Horizontal gradient: transparent at both edges, bright in the centre —
+        // gives the rounded, glassy look of a real water sheet
+        var grd = ctx.createLinearGradient(cx - hw, 0, cx + hw, 0);
+        grd.addColorStop(0.00, 'rgba(200,230,255,0)');
+        grd.addColorStop(0.18, 'rgba(255,255,255,' + c.alpha + ')');
+        grd.addColorStop(0.50, 'rgba(255,255,255,' + (c.alpha * 1.4).toFixed(3) + ')');
+        grd.addColorStop(0.82, 'rgba(255,255,255,' + c.alpha + ')');
+        grd.addColorStop(1.00, 'rgba(200,230,255,0)');
+
+        ctx.fillStyle = grd;
+        ctx.fill();
       }
-
-      // Draw as an ellipse stretched in the direction of travel
-      var vAngle = Math.atan2(p.vy, p.vx);
-      ctx.save();
-      ctx.globalAlpha = Math.max(0, p.life) * p.alpha;
-      ctx.fillStyle   = 'rgba(255,255,255,0.92)';
-      ctx.translate(p.x, p.y);
-      ctx.rotate(vAngle);
-      ctx.beginPath();
-      ctx.ellipse(0, 0, p.size * p.aspect, p.size, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
     }
 
     requestAnimationFrame(frame);
   }
+
   requestAnimationFrame(frame);
-
-  // Opening burst — spray hits right as the page loads
-  for (var j = 0; j < 4; j++) {
-    setTimeout(spawnSplash, j * 200);
-  }
-
-  // Ongoing rhythm — occasional double-hit like a wave crest
-  function schedule() {
-    spawnSplash();
-    if (Math.random() < 0.3) {
-      setTimeout(spawnSplash, rand(90, 230));
-    }
-    setTimeout(schedule, rand(450, 1100));
-  }
-  setTimeout(schedule, 1000);
 })();
 
 /* ---- Current year in footer copyright ---- */
