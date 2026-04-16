@@ -158,15 +158,6 @@
     });
   }
 
-  /* ---- Sticky header shadow on scroll ---- */
-  const header = document.querySelector('.site-header');
-  if (header) {
-    window.addEventListener('scroll', function () {
-      header.style.boxShadow = window.scrollY > 10
-        ? '0 3px 18px rgba(0,0,0,0.32)'
-        : '0 2px 12px rgba(0,0,0,0.25)';
-    }, { passive: true });
-  }
 
 })();
 
