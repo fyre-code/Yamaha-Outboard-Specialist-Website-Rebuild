@@ -267,6 +267,17 @@
   requestAnimationFrame(frame);
 })();
 
+/* ---- Disable tel: links on non-touch desktop browsers ---- */
+(function () {
+  var isMobile = navigator.maxTouchPoints > 0 || /Mobi|Android/i.test(navigator.userAgent);
+  if (!isMobile) {
+    document.querySelectorAll('a[href^="tel:"]').forEach(function (link) {
+      link.addEventListener('click', function (e) { e.preventDefault(); });
+      link.style.cursor = 'default';
+    });
+  }
+})();
+
 /* ---- Current year in footer copyright ---- */
 document.querySelectorAll('.js-year').forEach(function (el) {
   el.textContent = new Date().getFullYear();
