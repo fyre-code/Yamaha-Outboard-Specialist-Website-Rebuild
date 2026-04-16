@@ -345,6 +345,62 @@ p:last-child { margin-bottom: 0; }
   100% { transform: translateX(0) scaleY(1); }
 }
 
+/* ---------- HERO WATER SPLASH EFFECT ---------- */
+.hero-splash {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Individual water drop */
+.hero-drop {
+  position: absolute;
+  border-radius: 50% 50% 50% 50% / 55% 55% 45% 45%;
+  background: radial-gradient(
+    ellipse at 35% 30%,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.18) 35%,
+    rgba(107, 163, 196, 0.10) 65%,
+    transparent 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow:
+    inset 0 1px 3px rgba(255, 255, 255, 0.25),
+    0 2px 6px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  animation: heroDrop linear forwards;
+}
+
+/* Streak that trails below larger drops */
+.hero-streak {
+  position: absolute;
+  width: 2px;
+  border-radius: 1px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.28),
+    rgba(255, 255, 255, 0.12),
+    transparent
+  );
+  opacity: 0;
+  animation: heroStreak linear forwards;
+}
+
+@keyframes heroDrop {
+  0%   { opacity: 0;   transform: scale(0.25); }
+  12%  { opacity: 1;   transform: scale(1); }
+  65%  { opacity: 0.85; }
+  100% { opacity: 0;   transform: scale(0.9) translateY(var(--fall, 30px)); }
+}
+
+@keyframes heroStreak {
+  0%   { opacity: 0;   transform: scaleY(0);   transform-origin: top center; }
+  18%  { opacity: 0.7; transform: scaleY(1);   transform-origin: top center; }
+  100% { opacity: 0;   transform: scaleY(1) translateY(var(--fall, 50px)); }
+}
+
 /* Smaller hero for interior pages */
 .hero--sm {
   min-height: 280px;

@@ -161,6 +161,66 @@
 
 })();
 
+/* ---- Hero water splash effect ---- */
+(function initHeroSplash() {
+  const container = document.querySelector('.hero-splash');
+  if (!container) return;
+
+  function rand(min, max) { return Math.random() * (max - min) + min; }
+
+  function createDrop() {
+    const drop = document.createElement('div');
+    drop.className = 'hero-drop';
+
+    const size     = rand(7, 28);
+    const duration = rand(2.0, 4.2);
+    const fall     = rand(20, 60);
+    const leftPct  = rand(2, 97);
+    const topPct   = rand(4, 84);
+
+    drop.style.width            = size + 'px';
+    drop.style.height           = (size * rand(1.1, 1.55)) + 'px';
+    drop.style.left             = leftPct + '%';
+    drop.style.top              = topPct + '%';
+    drop.style.animationDuration = duration + 's';
+    drop.style.setProperty('--fall', fall + 'px');
+
+    container.appendChild(drop);
+    setTimeout(function () { if (drop.parentNode) drop.remove(); }, (duration + 0.6) * 1000);
+
+    // Add a trailing streak below larger drops
+    if (size > 15) {
+      const streak = document.createElement('div');
+      streak.className = 'hero-streak';
+      const streakH   = rand(22, 70);
+      const streakDur = duration * rand(0.55, 0.75);
+      const streakDel = duration * rand(0.18, 0.32);
+
+      streak.style.height           = streakH + 'px';
+      streak.style.left             = leftPct + '%';
+      streak.style.top              = 'calc(' + topPct + '% + ' + (size * 1.0) + 'px)';
+      streak.style.animationDuration = streakDur + 's';
+      streak.style.animationDelay   = streakDel + 's';
+      streak.style.setProperty('--fall', (fall * 1.6) + 'px');
+
+      container.appendChild(streak);
+      setTimeout(function () { if (streak.parentNode) streak.remove(); }, (duration + 0.9) * 1000);
+    }
+  }
+
+  // Initial burst so the effect is visible immediately
+  for (var i = 0; i < 12; i++) {
+    setTimeout(createDrop, i * 110);
+  }
+
+  // Ongoing natural rhythm with varied intervals
+  function scheduleDrop() {
+    createDrop();
+    setTimeout(scheduleDrop, rand(160, 580));
+  }
+  setTimeout(scheduleDrop, 1400);
+})();
+
 /* ---- Current year in footer copyright ---- */
 document.querySelectorAll('.js-year').forEach(function (el) {
   el.textContent = new Date().getFullYear();
