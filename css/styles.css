@@ -175,11 +175,11 @@ p:last-child { margin-bottom: 0; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 68px;
+  height: 108px;
 }
 
 .header-logo img {
-  height: 48px;
+  height: 96px;
   width: auto;
 }
 
@@ -240,7 +240,7 @@ p:last-child { margin-bottom: 0; }
   .main-nav {
     display: none;
     position: absolute;
-    top: 68px;
+    top: 108px;
     left: 0;
     right: 0;
     background: var(--navy);
