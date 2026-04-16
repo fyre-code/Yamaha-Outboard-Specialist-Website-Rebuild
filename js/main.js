@@ -170,6 +170,11 @@
 
 })();
 
+/* ---- Current year in footer copyright ---- */
+document.querySelectorAll('.js-year').forEach(function (el) {
+  el.textContent = new Date().getFullYear();
+});
+
 /* ---- Inline styles for form error state (injected once) ---- */
 (function injectFormStyles() {
   const style = document.createElement('style');
