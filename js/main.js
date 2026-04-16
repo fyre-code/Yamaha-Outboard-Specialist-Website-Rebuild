@@ -161,64 +161,92 @@
 
 })();
 
-/* ---- Hero water splash effect ---- */
+/* ---- Hero water splash effect (camera lens hit) ---- */
 (function initHeroSplash() {
   const container = document.querySelector('.hero-splash');
   if (!container) return;
 
   function rand(min, max) { return Math.random() * (max - min) + min; }
 
-  function createDrop() {
-    const drop = document.createElement('div');
+  function createImpact() {
+    var cx       = rand(5, 94);   // horizontal % centre of impact
+    var cy       = rand(5, 88);   // vertical %
+    var size     = rand(18, 70);  // main drop diameter px
+    var duration = rand(0.5, 1.1); // fast — this is a hit, not a drip
+
+    // --- Main drop ---
+    var drop = document.createElement('div');
     drop.className = 'hero-drop';
-
-    const size     = rand(7, 28);
-    const duration = rand(2.0, 4.2);
-    const fall     = rand(20, 60);
-    const leftPct  = rand(2, 97);
-    const topPct   = rand(4, 84);
-
-    drop.style.width            = size + 'px';
-    drop.style.height           = (size * rand(1.1, 1.55)) + 'px';
-    drop.style.left             = leftPct + '%';
-    drop.style.top              = topPct + '%';
+    drop.style.width  = size + 'px';
+    drop.style.height = size + 'px';
+    drop.style.left   = 'calc(' + cx + '% - ' + (size / 2) + 'px)';
+    drop.style.top    = 'calc(' + cy + '% - ' + (size / 2) + 'px)';
     drop.style.animationDuration = duration + 's';
-    drop.style.setProperty('--fall', fall + 'px');
-
     container.appendChild(drop);
-    setTimeout(function () { if (drop.parentNode) drop.remove(); }, (duration + 0.6) * 1000);
+    setTimeout(function () { if (drop.parentNode) drop.remove(); }, (duration + 0.25) * 1000);
 
-    // Add a trailing streak below larger drops
-    if (size > 15) {
-      const streak = document.createElement('div');
-      streak.className = 'hero-streak';
-      const streakH   = rand(22, 70);
-      const streakDur = duration * rand(0.55, 0.75);
-      const streakDel = duration * rand(0.18, 0.32);
+    // --- Ripple rings (1–2) ---
+    var numRipples = Math.random() < 0.5 ? 1 : 2;
+    for (var r = 0; r < numRipples; r++) {
+      var ripple   = document.createElement('div');
+      ripple.className = 'hero-ripple';
+      var rSize    = size * rand(0.85, 1.15);
+      var rDur     = rand(0.45, 0.9);
+      var rDelay   = r * rand(0.07, 0.16);
+      var rScale   = rand(2.5, 5);
+      ripple.style.width            = rSize + 'px';
+      ripple.style.height           = rSize + 'px';
+      ripple.style.left             = 'calc(' + cx + '% - ' + (rSize / 2) + 'px)';
+      ripple.style.top              = 'calc(' + cy + '% - ' + (rSize / 2) + 'px)';
+      ripple.style.animationDuration = rDur + 's';
+      ripple.style.animationDelay   = rDelay + 's';
+      ripple.style.setProperty('--ripple-scale', rScale);
+      container.appendChild(ripple);
+      setTimeout(function () { if (ripple.parentNode) ripple.remove(); }, (rDur + rDelay + 0.25) * 1000);
+    }
 
-      streak.style.height           = streakH + 'px';
-      streak.style.left             = leftPct + '%';
-      streak.style.top              = 'calc(' + topPct + '% + ' + (size * 1.0) + 'px)';
-      streak.style.animationDuration = streakDur + 's';
-      streak.style.animationDelay   = streakDel + 's';
-      streak.style.setProperty('--fall', (fall * 1.6) + 'px');
-
-      container.appendChild(streak);
-      setTimeout(function () { if (streak.parentNode) streak.remove(); }, (duration + 0.9) * 1000);
+    // --- Splatter droplets flying outward ---
+    var numSplatters = Math.floor(rand(5, 13));
+    for (var s = 0; s < numSplatters; s++) {
+      var sp      = document.createElement('div');
+      sp.className = 'hero-splatter';
+      var spSize  = rand(2, 9);
+      var angle   = (s / numSplatters) * Math.PI * 2 + rand(-0.35, 0.35);
+      var dist    = rand(size * 0.5, size * 2.4);
+      var dx      = Math.cos(angle) * dist;
+      var dy      = Math.sin(angle) * dist;
+      var spDur   = rand(0.3, 0.75);
+      var spDelay = rand(0.04, 0.18);
+      sp.style.width            = spSize + 'px';
+      sp.style.height           = spSize + 'px';
+      sp.style.left             = 'calc(' + cx + '% - ' + (spSize / 2) + 'px)';
+      sp.style.top              = 'calc(' + cy + '% - ' + (spSize / 2) + 'px)';
+      sp.style.animationDuration = spDur + 's';
+      sp.style.animationDelay   = spDelay + 's';
+      sp.style.setProperty('--dx', dx + 'px');
+      sp.style.setProperty('--dy', dy + 'px');
+      container.appendChild(sp);
+      setTimeout(function () { if (sp.parentNode) sp.remove(); }, (spDur + spDelay + 0.25) * 1000);
     }
   }
 
-  // Initial burst so the effect is visible immediately
-  for (var i = 0; i < 12; i++) {
-    setTimeout(createDrop, i * 110);
+  // Opening burst — hits right away when the page loads
+  for (var i = 0; i < 6; i++) {
+    setTimeout(createImpact, i * 180);
   }
 
-  // Ongoing natural rhythm with varied intervals
-  function scheduleDrop() {
-    createDrop();
-    setTimeout(scheduleDrop, rand(160, 580));
+  // Ongoing cadence — energetic but not overwhelming
+  function scheduleImpact() {
+    // ~25 % chance of a quick double-hit (wave crest)
+    if (Math.random() < 0.25) {
+      createImpact();
+      setTimeout(createImpact, rand(80, 200));
+    } else {
+      createImpact();
+    }
+    setTimeout(scheduleImpact, rand(350, 950));
   }
-  setTimeout(scheduleDrop, 1400);
+  setTimeout(scheduleImpact, 1300);
 })();
 
 /* ---- Current year in footer copyright ---- */
