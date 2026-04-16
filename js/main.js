@@ -269,7 +269,7 @@
 
 /* ---- Disable tel: links on non-touch desktop browsers ---- */
 (function () {
-  var isMobile = navigator.maxTouchPoints > 0 || /Mobi|Android/i.test(navigator.userAgent);
+  var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   if (!isMobile) {
     document.querySelectorAll('a[href^="tel:"]').forEach(function (link) {
       link.addEventListener('click', function (e) { e.preventDefault(); });
