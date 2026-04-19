@@ -278,6 +278,30 @@
   }
 })();
 
+/* ---- Service Carousel ---- */
+(function initServiceCarousel() {
+  var track = document.querySelector('.carousel-track');
+  if (!track) return;
+
+  var cards = track.querySelectorAll('.service-carousel-card');
+  var prevBtn = document.querySelector('.carousel-prev');
+  var nextBtn = document.querySelector('.carousel-next');
+  var dots = document.querySelectorAll('.carousel-dot');
+  var current = 0;
+
+  function goTo(index) {
+    current = (index + cards.length) % cards.length;
+    track.style.transform = 'translateX(-' + (current * 100) + '%)';
+    dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+  }
+
+  if (prevBtn) prevBtn.addEventListener('click', function() { goTo(current - 1); });
+  if (nextBtn) nextBtn.addEventListener('click', function() { goTo(current + 1); });
+  dots.forEach(function(dot, i) { dot.addEventListener('click', function() { goTo(i); }); });
+
+  goTo(0);
+})();
+
 /* ---- Current year in footer copyright ---- */
 document.querySelectorAll('.js-year').forEach(function (el) {
   el.textContent = new Date().getFullYear();
