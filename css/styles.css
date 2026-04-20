@@ -1134,9 +1134,6 @@ p:last-child { margin-bottom: 0; }
   .faq-question { padding: 0.85rem 0; font-size: 1rem; }
   .faq-answer p { font-size: 1rem; }
 
-  /* Iframes (contact form, reviews) */
-  iframe { min-height: 300px !important; }
-
   /* Why grid — single column */
   .why-grid { grid-template-columns: 1fr; gap: 1.25rem; }
 }
